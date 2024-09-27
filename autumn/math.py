@@ -4,7 +4,7 @@ print("math reloaded")
 
 def sigmoid(shift_x, shift_y, rate_h, range_v):
     def f_sigmoid(x):
-        exp = np.exp((shift_x - x) / rate_h)
+        exp = ((shift_x - x) / rate_h).exp()
         sig = 1 / (1 + exp)
         return shift_y + range_v * (sig - 0.5)
     return f_sigmoid
