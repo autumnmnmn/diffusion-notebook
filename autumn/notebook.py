@@ -10,6 +10,20 @@ from IPython.core.magic import register_cell_magic
 
 print("notebook reloaded")
 
+class Context(dict):
+    __getattr__ = dict.__getitem__
+    __setattr__ = dict.__setitem__
+    __delattr__ = dict.__delitem__
+
+    def __init__(self, other=None):
+        if other is None:
+            return
+        for key in other:
+            self[key] = other[key]
+
+    def update_by(self, method):
+        self.update(method(self))
+
 def index_where(predicate, _list):
     return next(filter(lambda _tuple: predicate(_tuple[1]), enumerate(_list)))[0] 
 
@@ -37,13 +51,14 @@ def settings(args, cell):
 
     daily_directory = date.today().strftime("%d.%b.%Y")
     daily_directory = f"out/{daily_directory}"
+    settings_directory = f"{daily_directory}/{settings_id}"
     
-    Path(daily_directory).mkdir(exist_ok=True, parents=True)
+    Path(settings_directory).mkdir(exist_ok=True, parents=True)
 
-    with open(f"{daily_directory}/{settings_id}.settings", "w") as file:
+    with open(f"{daily_directory}/{settings_id}/settings.py", "w") as file:
         file.write(log_content)
 
-    run_content = log_content + f"\ndaily_directory = \"{daily_directory}\""
+    run_content = log_content + f"\ndaily_directory = \"{daily_directory}\"\nsettings_directory = \"{settings_directory}\""
     
     get_ipython().run_cell(run_content)
 

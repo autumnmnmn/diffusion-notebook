@@ -2,12 +2,22 @@ import torch
 import numpy as np
 print("math reloaded")
 
-def sigmoid(shift_x, shift_y, rate_h, range_v):
+def id_(x):
+    return x
+
+def lerp(a, b, t):
+    return (1-t)*a + t*b
+
+def shifted_sigmoid(shift_x, shift_y, rate_h, range_v):
     def f_sigmoid(x):
         exp = ((shift_x - x) / rate_h).exp()
         sig = 1 / (1 + exp)
         return shift_y + range_v * (sig - 0.5)
     return f_sigmoid
+
+def sigmoid(rate_h, range_v):
+    return shifted_sigmoid(0,0,rate_h,range_v)
+
 
 def scale_f(f, scale_x, scale_y):
     def _f(x):
