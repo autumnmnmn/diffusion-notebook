@@ -34,19 +34,19 @@ def is_comment(line):
 def settings(args, cell):
     original_lines = [line for line in cell.split("\n")]
     i = index_where(lambda line: line.startswith("#!#"), original_lines)
-
+    
     settings_id = uuid.uuid4()
     id_line = f"settings_id = \"{settings_id}\"" 
     
     if os.path.isfile("settings.py"):
         with open("settings.py", "r") as reader:
-            private_lines = [line for line in reader.read().split("\n")]
+            private_lines = [line for line in reader]
         lines = [id_line] + private_lines + original_lines[i+1:]
     else:
         lines = [id_line] + original_lines[:i] + original_lines[i+1:]
 
-    is_meaningful = lambda line: line != "" and not is_comment(line)
-    
+    is_meaningful = lambda line: line != "" and line != "\n" and not is_comment(line)
+
     log_content = "\n".join(filter(is_meaningful, lines))
 
     daily_directory = date.today().strftime("%d.%b.%Y")

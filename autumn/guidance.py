@@ -11,7 +11,7 @@ def scaled_CFG(difference_scales, steering_scale, base_scale, total_scale):
         return total_scale(base + steering_scale(steering))
     return combine_predictions
 
-def dynamic_thresholding(predictions_split, noise_prediction, target, percentile):
+def apply_dynthresh(predictions_split, noise_prediction, target, percentile):
     target_prediction = predictions_split[1] + target * (predictions_split[1] - predictions_split[0])
     flattened_target = torch.flatten(target_prediction, 2)
     target_mean = flattened_target.mean(dim=2)
@@ -28,8 +28,8 @@ def dynamic_thresholding(predictions_split, noise_prediction, target, percentile
         noise_prediction[:,dim_index] *= target_thresholds[:,dim_index] / thresholds[:,dim_index]
         noise_prediction[:,dim_index] += prediction_mean[:,dim_index]
 
-def naive_rescaling(predictions_split, noise_prediction):
-    get_scale = lambda p: torch.linalg.vector_norm(p, ord=2, dtype=torch.float).item() / prediction.numel()
+def apply_naive_rescale(predictions_split, noise_prediction):
+    get_scale = lambda p: torch.linalg.vector_norm(p, ord=2, dtype=torch.float).item() / p.numel()
     norms = [get_scale(x) for x in predictions_split]
     natural_scale = sum(norms) / len(norms)
     final_scale = get_scale(noise_prediction)
