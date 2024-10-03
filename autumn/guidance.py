@@ -29,7 +29,7 @@ def apply_dynthresh(predictions_split, noise_prediction, target, percentile):
         noise_prediction[:,dim_index] += prediction_mean[:,dim_index]
 
 def apply_naive_rescale(predictions_split, noise_prediction):
-    get_scale = lambda p: torch.linalg.vector_norm(p, ord=2, dtype=torch.float).item() / p.numel()
+    get_scale = lambda p: torch.linalg.vector_norm(p, ord=2).item() / p.numel()
     norms = [get_scale(x) for x in predictions_split]
     natural_scale = sum(norms) / len(norms)
     final_scale = get_scale(noise_prediction)
