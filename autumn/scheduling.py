@@ -19,6 +19,10 @@ def default_diffusion_timesteps(inference_steps, training_steps=1000):
     step_spacing = training_steps // inference_steps
     return (torch.arange(inference_steps - 1, -1, -1) * step_spacing).round() + 1
 
+def linspace_timesteps(step_count, max_step=999, min_step=0, power=1):
+    steps = torch.linspace(1, 0, step_count, dtype=torch.float64).pow(power).mul(max_step-min_step).add(min_step).round().int()
+    return torch.cat([steps, torch.tensor([0], dtype=torch.int32)])
+
 def default_variance_schedule(variance_range, training_steps=1000):
     variance_start, variance_end = variance_range
     return torch.linspace(variance_start**0.5, variance_end**0.5, training_steps)**2

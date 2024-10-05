@@ -1,14 +1,16 @@
 import torch
 
-def scaled_CFG(difference_scales, steering_scale, base_scale, total_scale):
-    def combine_predictions(predictions):
-        base = base_scale(predictions[0])
+def scaled_CFG(difference_scales, steering_scale, base_term, total_scale):
+    def combine_predictions(predictions, true_noise):
+        base = base_term(predictions, true_noise)
         steering = base * 0
         len_predictions = len(predictions)
         for (a,b,scale) in difference_scales:
             if a >= len_predictions or b >= len_predictions: continue
-            steering += scale(predictions[a] - predictions[b])
-        return total_scale(base + steering_scale(steering))
+            prediction_a = true_noise if a < 0 else predictions[a]
+            prediction_b = true_noise if b < 0 else predictions[b]
+            steering += scale(prediction_a - prediction_b)
+        return total_scale(predictions, base + steering_scale(steering))
     return combine_predictions
 
 def apply_dynthresh(predictions_split, noise_prediction, target, percentile):
