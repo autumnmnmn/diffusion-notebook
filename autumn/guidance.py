@@ -13,6 +13,22 @@ def scaled_CFG(difference_scales, steering_scale, base_term, total_scale):
         return total_scale(predictions, base + steering_scale(steering))
     return combine_predictions
 
+def true_noise_removal(context, relative_scales):
+    def combine_predictions(predictions, true_noise):
+        steering = torch.zeros_like(true_noise)
+        scales = torch.tensor(relative_scales, dtype=true_noise.dtype)
+
+        if len(predictions) == 1:
+            barycenter = true_noise
+        else:
+            barycenter = predictions.sum(dim=0) / len(predictions)
+        
+        for index in range(len(predictions)):
+            steering += scales[index] * (predictions[index] - barycenter)
+        
+        return barycenter + steering + context.lerp_by_noise(barycenter + steering - true_noise, 0)
+    return combine_predictions
+
 def apply_dynthresh(predictions_split, noise_prediction, target, percentile):
     target_prediction = predictions_split[1] + target * (predictions_split[1] - predictions_split[0])
     flattened_target = torch.flatten(target_prediction, 2)

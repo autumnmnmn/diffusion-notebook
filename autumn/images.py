@@ -89,3 +89,26 @@ def save_approx_decode(latents, index):
         #im.save(f"out/tmp_approx_decode/{index:06d}.bmp")
         im.save(f"out/tmp_approx_decode.bmp")
         #display(im)
+
+def show_histogram(c, x, s):
+    bins = torch.arange(-1.5,1.51,0.01)
+    hist = torch.histogram(x.float().cpu() / vae_scale, bins=bins*s).hist
+
+    width = (len(bins) + 2) * 5
+    height = 100
+    plot = torch.ones([height, width])
+    hist /= hist.max()
+    
+    for i in range(len(bins) - 1):
+        bottom = height - 11
+        top = height - (int((height - 21) * (hist[i].item()) + 11))
+        left = 5 * (i + 1) + 2
+        right = 5 * (i + 1) + 4
+        plot[top:bottom,left:right] = 0
+
+    plot[:,width//2] = 0.5
+    plot[height-10,:] = 0.5
+    
+    mshow(plot)
+
+    return x

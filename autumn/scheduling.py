@@ -1,20 +1,6 @@
 import torch
 import numpy as np
 
-# hf diffusers sdxl euler scheduler settings
-
-beta_end = 0.012
-beta_schedule = "scaled_linear"
-beta_start = 0.00085
-interpolation_type = "linear"
-training_timesteps = 1000
-rescale_betas_zero_snr = False
-sample_max_value = 1
-skip_prk_steps = True
-steps_offset = 1
-timestep_spacing = "leading"
-use_karras_sigmas = False
-
 def default_diffusion_timesteps(inference_steps, training_steps=1000): 
     step_spacing = training_steps // inference_steps
     return (torch.arange(inference_steps - 1, -1, -1) * step_spacing).round() + 1

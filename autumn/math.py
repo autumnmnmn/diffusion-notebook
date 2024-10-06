@@ -1,5 +1,6 @@
 import torch
 import numpy as np
+import math
 print("math reloaded")
 
 def id_(x):
@@ -64,3 +65,9 @@ def svd_distort_embeddings(tensor, distort):
             #svd_mask[r][i] = distort(i)
     
     #return U @ torch.diag_embed(S * svd_mask) @ Vh
+
+def index_interpolate(source, index):
+    frac, whole = math.modf(index)
+    if frac == 0:
+        return source[int(whole)]
+    return lerp(source[int(whole)], source[int(whole)+1], frac)
