@@ -4,10 +4,11 @@ from IPython.display import display
 import numpy as np
 
 def pilify(latents, vae):
-    latents = 1 / vae.config.scaling_factor * latents
-    latents = latents.to(vae.dtype)
+    #latents = 1 / vae.config.scaling_factor * latents
+    latents = 1 / 0.13025 * latents
+    latents = latents.to(torch.float32)#vae.dtype)
     with torch.no_grad():
-        images = vae.decode(latents).sample
+        images = vae.decode(latents)#.sample
 
     images = images.detach().mul_(127.5).add_(127.5).clamp_(0,255).round()
     #return [images]
@@ -16,7 +17,8 @@ def pilify(latents, vae):
     
 
 def PILify(latents, vae):
-    latents = 1 / vae.config.scaling_factor * latents
+    #latents = 1 / vae.config.scaling_factor * latents
+    latents = 1 / 0.13025 * latents
     latents = latents.to(vae.dtype)
     with torch.no_grad():
         images = vae.decode(latents).sample

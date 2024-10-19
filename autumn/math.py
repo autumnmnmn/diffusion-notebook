@@ -42,21 +42,25 @@ def svd_distort(tensor, distort):
     
     return U @ torch.diag_embed(S * svd_mask) @ Vh
 
+def scale_embeddings(tensor, scaling):
+    print(tensor.shape)
+    for i in range(tensor.shape[0]):
+        tensor[i] *= scaling(i)
 
 def svd_distort_embeddings(tensor, distort):
     out = torch.clone(tensor)
     
-    for r in range(len(tensor)):
-        (U, S, Vh) = torch.linalg.svd(tensor[r])
-        distortion_mask = torch.ones_like(S)
+    #for r in range(len(tensor)):
+    (U, S, Vh) = torch.linalg.svd(tensor)
+    distortion_mask = torch.ones_like(S)
 
-        for i in range(len(distortion_mask)):
-            distortion_mask[i] = distort(i)
-        
-        S_diag_expanded = torch.zeros_like(tensor[r])
-        S_diag_expanded[:, :S.shape[0]] = torch.diag(S * distortion_mask)
-        
-        out[r] = U @ S_diag_expanded @ Vh
+    for i in range(len(distortion_mask)):
+        distortion_mask[i] = distort(i)
+    
+    S_diag_expanded = torch.zeros_like(tensor)
+    S_diag_expanded[:, :S.shape[0]] = torch.diag(S * distortion_mask)
+    
+    out = U @ S_diag_expanded @ Vh
     
     return out
 

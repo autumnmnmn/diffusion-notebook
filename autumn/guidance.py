@@ -13,15 +13,24 @@ def scaled_CFG(difference_scales, steering_scale, base_term, total_scale):
         return total_scale(predictions, base + steering_scale(steering))
     return combine_predictions
 
-def true_noise_removal(context, relative_scales):
+def single_prediction(context):
     def combine_predictions(predictions, true_noise):
+        S = 2 - context.sqrt_signal
+        return predictions[0] * S + true_noise * (1 - S)
+    return combine_predictions
+
+def true_noise_removal(context, relative_scales, barycentric=True):
+    def combine_predictions(predictions, true_noise):
+        if len(predictions) == 1:
+            return single_prediction(context)(predictions, true_noise)
+        
         steering = torch.zeros_like(true_noise)
         scales = torch.tensor(relative_scales, dtype=true_noise.dtype)
 
-        if len(predictions) == 1:
-            barycenter = true_noise
-        else:
+        if barycentric:
             barycenter = predictions.sum(dim=0) / len(predictions)
+        else:
+            barycenter = true_noise
         
         for index in range(len(predictions)):
             steering += scales[index] * (predictions[index] - barycenter)
