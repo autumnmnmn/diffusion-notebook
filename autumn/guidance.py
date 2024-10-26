@@ -27,15 +27,19 @@ def true_noise_removal(context, relative_scales, barycentric=True):
         steering = torch.zeros_like(true_noise)
         scales = torch.tensor(relative_scales, dtype=true_noise.dtype)
 
-        if barycentric:
-            barycenter = predictions.sum(dim=0) / len(predictions)
-        else:
-            barycenter = true_noise
+        barycenter = predictions.sum(dim=0) / len(predictions)
         
         for index in range(len(predictions)):
-            steering += scales[index] * (predictions[index] - barycenter)
+            if barycentric:
+                steering += scales[index] * (predictions[index] - barycenter)
+            else:
+                steering += scales[index] * (predictions[index] - true_noise)
+
+        S = 2 - context.sqrt_signal
         
-        return barycenter + steering + context.lerp_by_noise(barycenter + steering - true_noise, 0)
+        #return (S - 1) * steering + S * (barycenter) + (1 - S) * (true_noise)
+        #return (S-1) * steering + S * (barycenter) + (1 - S) * (true_noise - steering)
+        return steering + S * (barycenter) + (1 - S) * (true_noise - steering)
     return combine_predictions
 
 def apply_dynthresh(predictions_split, noise_prediction, target, percentile):
