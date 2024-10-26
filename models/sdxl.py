@@ -28,7 +28,7 @@ class Attention(nn.Module):
         y = func.scaled_dot_product_attention(q, k, v).transpose(1,2).view(b, h*w, c)
         
         y = self.to_out[0](y).transpose(-1,-2).view(b, c, h, w)
-
+        
         return x + y
 
 class ResnetBlock(nn.Module):
@@ -61,7 +61,7 @@ class ResnetBlock(nn.Module):
 
         if self.conv_shortcut is not None:
             x = self.conv_shortcut(x)
-            
+
         return x + h
         
 
@@ -97,7 +97,7 @@ class UpBlock(nn.Module):
             h = self.upsamplers[0](h)
         return h
 
-class SDXL_VAE(nn.Module):
+class Decoder(nn.Module):
     def __init__(self):
         super().__init__()
         
@@ -130,9 +130,11 @@ class SDXL_VAE(nn.Module):
         
         x = self.decoder.mid_block.resnets[0](x)
         for attn, net in zip(self.decoder.mid_block.attentions, self.decoder.mid_block.resnets[1:]):
-            if attn is not None:
-                x = attn(x)
-            x = net(x)
+            if (attn is not None):
+                y = attn(x)
+                x = y
+            y = net(x)
+            x = y
         
         for block in self.decoder.up_blocks:
             x = block(x)
