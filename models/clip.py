@@ -3,14 +3,16 @@ import torch
 from transformers import CLIPTokenizer, CLIPTextModel, CLIPTextModelWithProjection
 
 class PromptEncoder(object):
-    def __init__(self, model_source, is_xl, torch_dtype):
+    def __init__(self, model_source, is_xl, devices, torch_dtype):
+        self.model_device, self.output_device = devices
+        
         self.tokenizer = CLIPTokenizer.from_pretrained(
             model_source, subfolder="tokenizer", torch_dtype=torch_dtype
         )
         self.text_encoder = CLIPTextModel.from_pretrained(
             model_source, subfolder="text_encoder", torch_dtype=torch_dtype
         )
-        self.text_encoder.to(device="cuda")
+        self.text_encoder.to(device=self.model_device)
         if is_xl:
             self.tokenizer_2 = CLIPTokenizer.from_pretrained(
                 model_source, subfolder="tokenizer_2", torch_dtype=torch_dtype
@@ -18,7 +20,7 @@ class PromptEncoder(object):
             self.text_encoder_2 = CLIPTextModelWithProjection.from_pretrained(
                 model_source, subfolder="text_encoder_2", torch_dtype=torch_dtype
             )
-            self.text_encoder_2.to(device="cuda")
+            self.text_encoder_2.to(device=self.model_device)
             
     def encoder_1(self, prompts):
         # [N_prompts, 77]
@@ -36,7 +38,7 @@ class PromptEncoder(object):
             # [N_prompts, 77, 768]
             # a 768-value vector for each token of each prompt
             enc1_penult_states = self.text_encoder(
-                tokens.input_ids.to(device="cuda"),
+                tokens.input_ids.to(device=self.model_device),
                 output_hidden_states = True
             ).hidden_states[-2]
     
@@ -55,7 +57,7 @@ class PromptEncoder(object):
         
         with torch.no_grad():
             enc2_out = self.text_encoder_2(
-                tokens.input_ids.to(device="cuda"),
+                tokens.input_ids.to(device=self.model_device),
                 output_hidden_states = True
             )
         
@@ -80,4 +82,4 @@ class PromptEncoder(object):
         
         # [N_prompts, 77, 2048]
         # 2048-value vector for each token of each prompt, comprised of two embeddings
-        return torch.cat([encoding1, encoding2], dim=-1), encoding2_pooled
+        return torch.cat([encoding1, encoding2], dim=-1).to(device=self.output_device), encoding2_pooled.to(device=self.output_device)

@@ -1,4 +1,5 @@
 import torch
+from autumn.math import lerp
 
 def scaled_CFG(difference_scales, steering_scale, base_term, total_scale):
     def combine_predictions(predictions, true_noise):
@@ -36,10 +37,13 @@ def true_noise_removal(context, relative_scales, barycentric=True):
                 steering += scales[index] * (predictions[index] - true_noise)
 
         S = 2 - context.sqrt_signal
-        
-        #return (S - 1) * steering + S * (barycenter) + (1 - S) * (true_noise)
+        #print(context.signal)
+        #return steering + lerp(true_noise, barycenter, 1 - context.noise)
+        #return S * steering + S * (barycenter) #+ (1 - S) * (true_noise)
+        #return (S - 1) * steering + S * barycenter + (1 - S) * (true_noise)
+        return S * (barycenter + steering) + (1 - S) * (true_noise)
         #return (S-1) * steering + S * (barycenter) + (1 - S) * (true_noise - steering)
-        return steering + S * (barycenter) + (1 - S) * (true_noise - steering)
+        #return  S * (barycenter + steering) + (1 - S) * (true_noise - steering)
     return combine_predictions
 
 def apply_dynthresh(predictions_split, noise_prediction, target, percentile):

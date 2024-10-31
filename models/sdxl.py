@@ -20,11 +20,11 @@ class Attention(nn.Module):
         y = x.view(b, c, h * w)
         
         y = self.group_norm(y).transpose(1,2)
-        
+
         q = self.to_q(y).view(b, h*w, 1, c).transpose(1, 2)
         k = self.to_k(y).view(b, h*w, 1, c).transpose(1, 2)
         v = self.to_v(y).view(b, h*w, 1, c).transpose(1, 2)
-        
+
         y = func.scaled_dot_product_attention(q, k, v).transpose(1,2).view(b, h*w, c)
         
         y = self.to_out[0](y).transpose(-1,-2).view(b, c, h, w)
@@ -71,7 +71,7 @@ class UpSampler(nn.Module):
         self.conv = nn.Conv2d(size, size, kernel_size=3, padding=1)
 
     def forward(self, x):
-        x_interp = func.interpolate(x, scale_factor=2.0, mode="nearest")
+        x_interp = func.interpolate(x, scale_factor=2.0, mode="nearest-exact")
         return self.conv(x_interp)
 
 class UpBlock(nn.Module):
