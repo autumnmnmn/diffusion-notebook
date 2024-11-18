@@ -142,8 +142,11 @@ class Decoder(nn.Module):
         x = self.silu(x)
         return self.decoder.conv_out(x)
 
-    def load_safetensors(self, model_directory):
-        path = f"{model_directory}/vae/diffusion_pytorch_model.safetensors"
+    def load_safetensors(self, model_directory, direct=False):
+        if direct:
+            path = model_directory
+        else:
+            path = f"{model_directory}/vae/diffusion_pytorch_model.safetensors"
         sd = self.state_dict()
         with st_open(path, framework="pt") as file:
             for key in sd.keys():
